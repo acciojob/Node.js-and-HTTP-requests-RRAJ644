@@ -1,27 +1,39 @@
 const https = require('https')
 
+// URL to fetch data from
 const url = 'https://jsonplaceholder.typicode.com/todos/1'
 
-// TODO: Implement this function
-const server = https
-  .createServer((req, res) => {
-    https.get(url, (res) => {
+// Create an HTTP server
+const server = https.createServer((req, res) => {
+  // Perform the GET request
+  https
+    .get(url, (response) => {
       let data = ''
 
-      res.on('end', () => {
+      // Collect data chunks
+      response.on('data', (chunk) => {
+        data += chunk
+      })
+
+      // Process and send the data once fully received
+      response.on('end', () => {
         try {
           const jsonResponse = JSON.parse(data)
-          console.log(`Title: ${jsonResponse.title}`)
+          res.writeHead(200, { 'Content-Type': 'application/json' })
+          res.end(JSON.stringify({ title: jsonResponse.title }))
         } catch (error) {
-          console.log('Error parsing JSON:', error.message)
+          res.writeHead(500, { 'Content-Type': 'text/plain' })
+          res.end('Error parsing JSON')
         }
       })
     })
-  })
-  .on('error', (err) => {
-    console.log('Request failed:', err.message)
-  })
+    .on('error', (err) => {
+      res.writeHead(500, { 'Content-Type': 'text/plain' })
+      res.end('Request failed: ' + err.message)
+    })
+})
 
-server.listen(300, () => {
-  console.log('server is listening at port 3000')
+// Listen on port 3000
+server.listen(3000, () => {
+  console.log('Server is listening on port 3000')
 })
